@@ -15,32 +15,20 @@ function debounce<T extends (...args: Parameters<T>) => void>(
 }
 
 // ...or throttle
-function throttle<T extends (...args: Parameters<T>) => void>(
-  this: ThisParameterType<T>,
-  fn: T,
-  delay = 100,
-) {
-  let inThrottle: boolean
-  let timer: ReturnType<typeof setTimeout>
-  let lastTime: number
+function throttle<T extends (...args: Parameters<T>) => void>(fn: T, timeout: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined
 
-  return (...args: Parameters<T>) => {
-    if (inThrottle) {
-      clearTimeout(timer)
-      timer = setTimeout(
-        () => {
-          if (Date.now() - lastTime >= delay) {
-            fn.apply(this, args)
-            lastTime = Date.now()
-          }
-        },
-        Math.max(delay - (Date.now() - lastTime), 0),
-      )
-    } else {
-      fn.apply(this, args)
-      lastTime = Date.now()
-      inThrottle = true
+  return function perform(...args: Parameters<T>) {
+    if (timer) {
+      return
     }
+
+    timer = setTimeout(() => {
+      fn(...args)
+
+      clearTimeout(timer)
+      timer = undefined
+    }, timeout)
   }
 }
 
